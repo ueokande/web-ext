@@ -23,10 +23,10 @@ const tempInstallResult = {
 describe('run', () => {
 
   function prepareRun(fakeInstallResult) {
-    const sourceDir = fixturePath('minimal-web-ext');
+    const sourceDir = [fixturePath('minimal-web-ext')];
 
     const argv = {
-      artifactsDir: path.join(sourceDir, 'web-ext-artifacts'),
+      artifactsDir: path.join(sourceDir[0], 'web-ext-artifacts'),
       sourceDir,
       noReload: true,
       keepProfileChanges: false,

@@ -39,7 +39,7 @@ export type CmdRunParams = {|
   noInput?: boolean,
   noReload: boolean,
   preInstall: boolean,
-  sourceDir: string,
+  sourceDir: Array<string>,
   startUrl?: Array<string>,
   target?: Array<string>,
 
@@ -98,7 +98,7 @@ export default async function run(
     getValidatedManifest = defaultGetValidatedManifest,
   }: CmdRunOptions = {}): Promise<DefaultMultiExtensionRunner> {
 
-  log.info(`Running web extension from ${sourceDir}`);
+  log.info(`Running web extension from ${sourceDir.join(',')}`);
   if (preInstall) {
     log.info('Disabled auto-reloading because it\'s not possible with ' +
              '--pre-install');
@@ -108,13 +108,16 @@ export default async function run(
   // Create an alias for --pref since it has been transformed into an
   // object containing one or more preferences.
   const customPrefs = pref;
-  const manifestData = await getValidatedManifest(sourceDir);
+  const extensions = await Promise.all(sourceDir.map(async (dir: string) => {
+      const manifestData = await getValidatedManifest(dir);
+      return {sourceDir: dir, manifestData};
+    }));
 
   const runners = [];
 
   const commonRunnerParams = {
     // Common options.
-    extensions: [{sourceDir, manifestData}],
+    extensions,
     keepProfileChanges,
     startUrl,
     desktopNotifications,
@@ -195,16 +198,6 @@ export default async function run(
 
   if (noReload) {
     log.info('Automatic extension reloading has been disabled');
-  } else {
-    log.info('The extension will reload if any source file changes');
-
-    reloadStrategy({
-      extensionRunner,
-      sourceDir,
-      artifactsDir,
-      ignoreFiles,
-      noInput,
-    });
   }
 
   return extensionRunner;
