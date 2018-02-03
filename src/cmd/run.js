@@ -194,6 +194,9 @@ export default async function run(
     runners,
   });
 
+  process.on('SIGTERM', function() {
+    extensionRunner.exit();
+  });
   await extensionRunner.run();
 
   if (noReload) {
